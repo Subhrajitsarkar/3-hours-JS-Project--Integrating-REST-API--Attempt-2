@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .container {
+            margin: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <form action="" id="formId" onsubmit="saveDetils(event)" class="container">
+        <label for="name">Candy name:</label>
+        <input type="text" name="name" id="name" required>
+
+        <label for="description">Description:</label>
+        <input type="text" name="description" id="description" required>
+
+        <label for="price">Price</label>
+        <input type="number" name="price" id="price" required>
+
+        <label for="quantity">Quantity</label>
+        <input type="number" name="quantity" id="quantity">
+
+        <button type="submit">ADD</button>
+    </form>
+    <ul id="ulId"></ul>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        let API = "https://crudcrud.com/api/97beff6c7e7141c48eb71be40e352c70/products"
+
+        async function saveDetils(event) {
+            event.preventDefault()
+            let name = document.getElementById('name').value;
+            let description = document.getElementById('description').value;
+            let price = document.getElementById('price').value;
+            let quantity = document.getElementById('quantity').value;
+
+            let obj = { name, description, price, quantity }
+            await axios.post("https://crudcrud.com/api/97beff6c7e7141c48eb71be40e352c70/products", obj)
+            document.getElementById('formId').reset()
+            displayDetails()
+        }
+
+        async function displayDetails() {
+            let response = await axios.get("https://crudcrud.com/api/97beff6c7e7141c48eb71be40e352c70/products")
+            let productDetails = response.data;
+            let show = document.getElementById('ulId')
+            show.innerHTML = ''
+            productDetails.forEach((prod) => {
+                show.innerHTML += `<li>${prod.name} - ${prod.description} - ${prod.price}rs - ${prod.quantity}
+                    <button onclick='buyProduct("${prod._id}",1)'>Buy 1</button>
+                    <button onclick='buyProduct("${prod._id}",2)'>Buy 2</button>
+                    <button onclick='buyProduct("${prod._id}",3)'>Buy 3</button></li>`
+            })
+        }
+
+        async function buyProduct(id, productToReduce) {
+            let response = await axios.get(`https://crudcrud.com/api/97beff6c7e7141c48eb71be40e352c70/products/${id}`)
+            let product = response.data;
+            if (product.quantity >= productToReduce) {
+                product.quantity -= productToReduce;
+                let update = {
+                    name: product.name,
+                    description: product.description,
+                    price: product.price,
+                    quantity: product.quantity
+                }
+                await axios.put(`https://crudcrud.com/api/97beff6c7e7141c48eb71be40e352c70/products/${id}`, update)
+                displayDetails()
+            }
+            else {
+                alert("Not enough quantity available!");
+            }
+        }
+        window.onload = displayDetails
+    </script>
+</body>
+
+</html>
